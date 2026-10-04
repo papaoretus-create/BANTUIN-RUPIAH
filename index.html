@@ -110,7 +110,7 @@ form.addEventListener('submit',async e=>{
    const nik=v('nik').replace(/\D/g,'');
    if(nik.length!==16) throw new Error('NIK harus terdiri dari 16 digit.');
    const payload={
-     nama_lengkap:v('nama'),nik_ktp:nik,tempat_lahir:v('tempat_lahir'),
+     nama_lengkap:v('nama'),nik:nik,tempat_lahir:v('tempat_lahir'),
      tanggal_lahir:document.getElementById('tanggal_lahir').value||null,
      jenis_kelamin:v('jenis_kelamin'),status_pernikahan:v('status_pernikahan'),
      nomor_hp:v('hp'),email:v('email')||null,alamat:v('alamat'),provinsi:v('provinsi'),
