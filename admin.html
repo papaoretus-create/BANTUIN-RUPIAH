@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Bantuin Rupiah</title>
+<style>
+body{margin:0;background:#f4f7fb;color:#12233f;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{width:min(1200px,calc(100% - 24px));margin:24px auto}.card{background:#fff;border:1px solid #dfe6f0;border-radius:16px;padding:20px;box-shadow:0 8px 25px #071f4912}
+h1{color:#071f49}.login{max-width:420px;margin:10vh auto}input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;box-sizing:border-box;margin:6px 0 12px}button{border:0;border-radius:9px;padding:11px 15px;font-weight:800;cursor:pointer;background:#0756b8;color:white}.danger{background:#ed1c24}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.toolbar>div{min-width:180px}.tablewrap{overflow:auto;margin-top:18px}table{width:100%;border-collapse:collapse;min-width:1000px}th,td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px;vertical-align:top}th{background:#f8fafc;color:#475569}.msg{padding:10px;border-radius:9px;background:#eef6ff;margin:10px 0;display:none}.ok{background:#ecfdf3;color:#087443}.err{background:#fff1f2;color:#b42318}.small{font-size:12px;color:#667085}.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;font-size:11px;font-weight:800}
+</style></head>
+<body><div class="wrap">
+<div id="login" class="card login"><h1>Admin Bantuin Rupiah</h1><p class="small">Masuk menggunakan akun Supabase Auth yang telah ditetapkan sebagai admin.</p>
+<label>Email</label><input id="email" type="email" autocomplete="username"><label>Password</label><input id="password" type="password" autocomplete="current-password">
+<button id="loginBtn" style="width:100%">Masuk</button><div id="loginMsg" class="msg"></div></div>
+
+<div id="app" style="display:none"><div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h1 style="margin:0">Dashboard Pengajuan</h1><div class="small" id="who"></div></div><button id="logout" class="danger">Keluar</button></div>
+<div class="toolbar" style="margin-top:18px"><div><label>Status</label><select id="filter"><option value="">Semua</option><option value="diproses">Diproses</option><option value="diterima">Diterima</option><option value="ditolak">Ditolak</option></select></div><div><label>Pencarian</label><input id="search" placeholder="Nama / HP / NIK"></div><div><button id="refresh">Muat Ulang</button></div></div>
+<div id="appMsg" class="msg"></div><div class="tablewrap"><table><thead><tr><th>Tanggal</th><th>Nasabah</th><th>Kontak</th><th>NIK</th><th>Alamat</th><th>Pekerjaan</th><th>Pengajuan</th><th>Penghasilan</th><th>Kontak Darurat</th><th>Rekening</th><th>Status & Feedback</th></tr></thead><tbody id="rows"></tbody></table></div>
+</div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+const supabaseClient=window.supabase.createClient('https://ehbojuozurtwxvwsuhqs.supabase.co','sb_publishable_ZuU1AeOoWbVkQvpEh-tVBA_x8WFj8cH');
+const $=id=>document.getElementById(id); let allRows=[];
+function msg(el,text,cls=''){el.textContent=text;el.className='msg '+cls;el.style.display='block'}
+function money(v){return v==null||v===''?'-':new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(v)}
+function render(){
+ const q=$('search').value.toLowerCase().trim(),f=$('filter').value;
+ const rows=allRows.filter(x=>(!f||x.status_pengajuan===f)&&(!q||[x.nama_lengkap,x.nomor_hp,x.nik].join(' ').toLowerCase().includes(q)));
+ $('rows').innerHTML=rows.map(x=>`<tr><td>${new Date(x.created_at).toLocaleString('id-ID')}</td><td><b>${x.nama_lengkap||'-'}</b><br>${x.jenis_kelamin||''} ${x.status_pernikahan||''}<br>${x.tempat_lahir||''} ${x.tanggal_lahir||''}</td><td>${x.nomor_hp||'-'}<br>${x.email||''}</td><td>${x.nik||'-'}</td><td>${[x.alamat,x.kelurahan_desa,x.kecamatan,x.kabupaten_kota,x.provinsi,x.kode_pos].filter(Boolean).join(', ')||'-'}</td><td>${[x.status_pekerjaan,x.pekerjaan,x.nama_perusahaan,x.lama_bekerja].filter(Boolean).join(' · ')||'-'}</td><td>${x.jenis_pengajuan||'-'}<br>${money(x.jumlah_pengajuan)} · ${x.tenor_bulan||'-'} bln<br>${x.tujuan_dana||x.keterangan||''}</td><td>${money(x.penghasilan_bulanan)}<br>Tambahan: ${money(x.penghasilan_tambahan)}</td><td>${[x.kontak_darurat_nama,x.kontak_darurat_hp,x.kontak_darurat_hubungan].filter(Boolean).join(' · ')||'-'}</td><td>${[x.jenis_bank,x.nama_bank,x.nomor_rekening].filter(Boolean).join(' · ')||'-'}</td><td><select onchange="changeStatus('${x.id}',this.value)"><option value="diproses" ${x.status_pengajuan==='diproses'?'selected':''}>diproses</option><option value="diterima" ${x.status_pengajuan==='diterima'?'selected':''}>diterima</option><option value="ditolak" ${x.status_pengajuan==='ditolak'?'selected':''}>ditolak</option></select><textarea id="note-${x.id}" placeholder="Catatan feedback..." style="width:100%;min-height:55px;box-sizing:border-box;margin-top:6px">${x.catatan_status||''}</textarea><button onclick="saveNote('${x.id}')" style="margin-top:5px">Simpan Feedback</button><div class="small">${x.kode_pengajuan||''}</div></td></tr>`).join('')||'<tr><td colspan="11">Tidak ada pengajuan.</td></tr>';
+}
+async function load(){
+ const {data,error}=await supabaseClient.from('calon_nasabah').select('*').order('created_at',{ascending:false});
+ if(error){msg($('appMsg'),error.message,'err');return} allRows=data||[];render();
+}
+window.changeStatus=async function(id,status){
+ const {error}=await supabaseClient.from('calon_nasabah').update({status_pengajuan:status,status_updated_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',id);
+ if(error){msg($('appMsg'),error.message,'err');return} await load();
+}
+async function start(){
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(session){ $('login').style.display='none';$('app').style.display='block';$('who').textContent=session.user.email||'';load();}
+}
+$('loginBtn').onclick=async()=>{const {error}=await supabaseClient.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)msg($('loginMsg'),error.message,'err');else start();};
+
+window.saveNote=async function(id){const note=document.getElementById('note-'+id).value.trim();const {error}=await supabaseClient.from('calon_nasabah').update({catatan_status:note,status_updated_at:new Date().toISOString()}).eq('id',id);if(error){msg($('appMsg'),error.message,'err');return}msg($('appMsg'),'Feedback berhasil disimpan.','ok');await load();};
+$('logout').onclick=async()=>{await supabaseClient.auth.signOut();location.reload()};
+$('refresh').onclick=load;$('filter').onchange=render;$('search').oninput=render;start();
+</script></body></html>
