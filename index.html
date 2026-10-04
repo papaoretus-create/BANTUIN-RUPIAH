@@ -26,6 +26,38 @@ fieldset{border:0;padding:0;margin:0 0 22px}legend{font-size:18px;font-weight:90
 footer{background:#061a3b;color:#fff;padding:38px 0}.foot{display:flex;justify-content:space-between;gap:20px}.links{display:flex;gap:18px;flex-wrap:wrap}.copy{border-top:1px solid #29446e;margin-top:25px;padding-top:15px;color:#8ea5c5;font-size:11px}
 @media(max-width:850px){.heroGrid{grid-template-columns:1fr}.navlinks{display:none}.grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.two,.three,.grid{grid-template-columns:1fr}.sectionTitle,.foot{display:block}h1{letter-spacing:-2px}}
+
+.regulatory{padding:42px 0;background:#f8fafc;border-top:1px solid #dfe6f0}
+.regHead{text-align:center;max-width:760px;margin:0 auto 24px}
+.regHead h2{margin:8px 0;font-size:28px}
+.logos{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.logoBox{min-height:86px;background:#fff;border:1px solid #dfe6f0;border-radius:14px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;box-shadow:0 5px 18px #071f4909}
+.logoBox a{width:100%}.logoMark{font-weight:950;font-size:20px;letter-spacing:-.7px;color:#12233f}
+.logoMark small{display:block;font-size:9px;letter-spacing:.5px;font-weight:800;color:#667085;margin-top:3px}
+.regNote{margin:18px auto 0;max-width:900px;text-align:center;font-size:11px;color:#667085}
+.regNote b{color:#344054}
+@media(max-width:850px){.logos{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.logos{grid-template-columns:repeat(2,1fr)}}
+
+
+.bank-section{margin:22px 0 24px;padding:22px;background:linear-gradient(145deg,#f7fbff,#fff);border:1px solid #d7e3f1;border-radius:16px;box-shadow:0 8px 24px #071f490c}
+.bank-head{display:flex;align-items:flex-start;gap:13px;padding-bottom:16px;margin-bottom:8px;border-bottom:1px solid #e5edf6}
+.bank-icon{width:42px;height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#eaf3ff;color:var(--b);font-size:21px;font-weight:900}
+.bank-kicker{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--b)}
+.bank-head h2{margin:2px 0 3px;font-size:22px}
+.bank-head p{margin:0;color:var(--m);font-size:12px}
+.bank-fields{display:grid;grid-template-columns:1fr 1.2fr 1.2fr;gap:12px}
+.bank-section .field{margin:10px 0 0}
+.bank-section .field label{font-size:12px;margin-bottom:6px}
+.bank-section .field input,.bank-section .field select{padding:13px;border-radius:10px;border-color:#c9d7e8;background:#fff;transition:border-color .15s,box-shadow .15s}
+.bank-section .field input:focus,.bank-section .field select:focus{outline:0;border-color:var(--b);box-shadow:0 0 0 3px #0756b814}
+.account-input{position:relative}
+.account-input>span{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#667085;font-weight:800;pointer-events:none}
+.account-input input{padding-left:31px!important;letter-spacing:.4px}
+.bank-account-field small{display:block;margin-top:5px;color:#667085;font-size:10px}
+@media(max-width:850px){.bank-fields{grid-template-columns:1fr 1fr}.bank-account-field{grid-column:1/-1}}
+@media(max-width:560px){.bank-section{padding:17px}.bank-head{gap:10px}.bank-head h2{font-size:19px}.bank-fields{grid-template-columns:1fr}.bank-account-field{grid-column:auto}}
+
 </style>
 </head>
 <body>
@@ -80,6 +112,40 @@ footer{background:#061a3b;color:#fff;padding:38px 0}.foot{display:flex;justify-c
 <div class="field"><label>Hubungan</label><select id="kontak_darurat_hubungan"><option value="">Pilih</option><option>Pasangan</option><option>Orang tua</option><option>Anak</option><option>Saudara</option><option>Teman</option><option>Lainnya</option></select></div>
 </fieldset>
 
+<section class="bank-section" aria-labelledby="bank-title">
+  <div class="bank-head">
+    <div class="bank-icon" aria-hidden="true">▣</div>
+    <div>
+      <div class="bank-kicker">DATA REKENING</div>
+      <h2 id="bank-title">Informasi Rekening Bank</h2>
+      <p>Lengkapi data rekening dengan benar untuk kebutuhan pencatatan dan verifikasi.</p>
+    </div>
+  </div>
+  <div class="bank-fields">
+    <div class="field">
+      <label for="jenis_bank">Jenis Bank</label>
+      <select id="jenis_bank" name="jenis_bank" required>
+        <option value="">Pilih Jenis Bank</option>
+        <option value="Bank Umum">Bank Umum</option>
+        <option value="Bank Syariah">Bank Syariah</option>
+        <option value="BPR/BPRS">BPR/BPRS</option>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="nama_bank">Nama Bank</label>
+      <input type="text" id="nama_bank" name="nama_bank" placeholder="Contoh: BRI, BCA, Bank Mandiri" autocomplete="organization" required>
+    </div>
+    <div class="field bank-account-field">
+      <label for="nomor_rekening">No. Bank Rekening</label>
+      <div class="account-input">
+        <span aria-hidden="true">#</span>
+        <input type="text" id="nomor_rekening" name="nomor_rekening" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Masukkan nomor bank rekening" required oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <small>Gunakan angka saja (0–9).</small>
+    </div>
+  </div>
+</section>
 <label class="check"><input id="persetujuan" type="checkbox" required><span>Saya menyatakan data yang saya berikan benar dan menyetujui penggunaannya untuk proses pengajuan dan verifikasi sesuai kebijakan yang berlaku.</span></label>
 <button id="submitLoan" class="btn red" style="width:100%" type="submit">Kirim Pengajuan →</button>
 <p id="formStatus" class="status" role="status" aria-live="polite"></p>
@@ -94,6 +160,22 @@ footer{background:#061a3b;color:#fff;padding:38px 0}.foot{display:flex;justify-c
 <details><summary>Apakah NIK aman?</summary><p>NIK termasuk data sensitif. Formulir publik hanya memiliki akses untuk mengirim data; akses baca untuk admin harus dilindungi dengan Row Level Security dan autentikasi.</p></details>
 <details><summary>Apakah saya harus memberikan OTP atau PIN?</summary><p>Tidak. Jangan pernah memberikan OTP, PIN, password, CVV, atau kode keamanan.</p></details>
 </div></section>
+
+<section class="regulatory"><div class="c">
+<div class="regHead"><span class="ey">Referensi Institusi</span>
+<h2>Informasi Regulasi & Ekosistem Keuangan</h2>
+<p class="muted">referensi untuk kebutuhan serta simulasi edukasi masalah keuangan.</p></div>
+<div class="logos">
+<div class="logoBox"><a href="https://www.ojk.go.id/" target="_blank" rel="noopener"><div class="logoMark">OJK<small>OTORITAS JASA KEUANGAN</small></div></a></div>
+<div class="logoBox"><a href="https://www.bi.go.id/" target="_blank" rel="noopener"><div class="logoMark">BI<small>BANK INDONESIA</small></div></a></div>
+<div class="logoBox"><a href="https://afpi.or.id/" target="_blank" rel="noopener"><div class="logoMark">AFPI<small>ASOSIASI FINTECH PENDANAAN BERSAMA INDONESIA</small></div></a></div>
+<div class="logoBox"><div class="logoMark">LPS<small>LEMBAGA PENJAMIN SIMPANAN</small></div></div>
+<div class="logoBox"><div class="logoMark">GPN<small>GERBANG PEMBAYARAN NASIONAL</small></div></div>
+<div class="logoBox"><div class="logoMark">KOMDIGI<small>KOMUNIKASI & DIGITAL</small></div></div>
+</div>
+<p class="regNote"><b>SIMULASI TUGAS PENDIDIKAN:</b> elemen institusi di atas digunakan sebagai referensi visual/edukasi dalam project. Tampilan ini tidak menyatakan Bantuin Rupiah diawasi, berizin, terdaftar, disertifikasi, atau menjadi anggota institusi tersebut.</p>
+</div></section>
+
 </main>
 
 <footer><div class="c foot"><div><b>BANTUIN <span style="color:#ff4650">RUPIAH</span></b><p>Platform informasi dan pengajuan dana.</p></div><div class="links"><a href="#form">Pengajuan</a><a href="#keunggulan">Keunggulan</a><a href="#faq">FAQ</a></div></div><div class="c copy">© 2026 Bantuin Rupiah.</div></footer>
@@ -110,7 +192,8 @@ form.addEventListener('submit',async e=>{
    const nik=v('nik').replace(/\D/g,'');
    if(nik.length!==16) throw new Error('NIK harus terdiri dari 16 digit.');
    const payload={
-     nama_lengkap:v('nama'),nik:nik,tempat_lahir:v('tempat_lahir'),
+     nama_lengkap:v('nama'),nik:nik,
+      jenis_bank:v('jenis_bank'),nama_bank:v('nama_bank'),nomor_rekening:v('nomor_rekening'),tempat_lahir:v('tempat_lahir'),
      tanggal_lahir:document.getElementById('tanggal_lahir').value||null,
      jenis_kelamin:v('jenis_kelamin'),status_pernikahan:v('status_pernikahan'),
      nomor_hp:v('hp'),email:v('email')||null,alamat:v('alamat'),provinsi:v('provinsi'),
