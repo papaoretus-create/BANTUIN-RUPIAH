@@ -58,6 +58,8 @@ footer{background:#061a3b;color:#fff;padding:38px 0}.foot{display:flex;justify-c
 @media(max-width:850px){.bank-fields{grid-template-columns:1fr 1fr}.bank-account-field{grid-column:1/-1}}
 @media(max-width:560px){.bank-section{padding:17px}.bank-head{gap:10px}.bank-head h2{font-size:19px}.bank-fields{grid-template-columns:1fr}.bank-account-field{grid-column:auto}}
 
+
+.tracking-box{margin-top:14px;padding:16px;border:1px solid #cfe0f3;border-radius:13px;background:#f7fbff}.tracking-title{font-size:11px;font-weight:900;letter-spacing:.8px;color:#0756b8;text-transform:uppercase}.tracking-status{margin-top:5px;font-size:21px;font-weight:900;color:#071f49}.tracking-meta{margin-top:5px;font-size:12px;color:#667085}.tracking-status.is-diterima{color:#087443}.tracking-status.is-ditolak{color:#b42318}.tracking-status.is-diproses{color:#0756b8}
 </style>
 </head>
 <body>
@@ -149,6 +151,12 @@ footer{background:#061a3b;color:#fff;padding:38px 0}.foot{display:flex;justify-c
 <label class="check"><input id="persetujuan" type="checkbox" required><span>Saya menyatakan data yang saya berikan benar dan menyetujui penggunaannya untuk proses pengajuan dan verifikasi sesuai kebijakan yang berlaku.</span></label>
 <button id="submitLoan" class="btn red" style="width:100%" type="submit">Kirim Pengajuan →</button>
 <p id="formStatus" class="status" role="status" aria-live="polite"></p>
+<div id="trackingBox" class="tracking-box" style="display:none" aria-live="polite">
+  <div class="tracking-title">Status Pengajuan</div>
+  <div class="tracking-status" id="trackingStatus">Diproses</div>
+  <div class="tracking-meta" id="trackingMeta"></div>
+  <button type="button" class="btn light" id="checkStatus" style="width:100%;margin-top:10px">Cek Status Terbaru</button>
+</div>
 <p class="note">* Wajib diisi. Jangan mengirim OTP, PIN, password, atau data kartu.</p>
 </form></div></div></section>
 
@@ -184,35 +192,35 @@ footer{background:#061a3b;color:#fff;padding:38px 0}.foot{display:flex;justify-c
 <script>
 const supabaseClient=window.supabase.createClient('https://ehbojuozurtwxvwsuhqs.supabase.co','sb_publishable_ZuU1AeOoWbVkQvpEh-tVBA_x8WFj8cH');
 const form=document.getElementById('loan'),btn=document.getElementById('submitLoan'),statusBox=document.getElementById('formStatus');
+const trackingBox=document.getElementById('trackingBox'),trackingStatus=document.getElementById('trackingStatus'),trackingMeta=document.getElementById('trackingMeta'),checkStatus=document.getElementById('checkStatus');
 function showStatus(msg,ok){statusBox.textContent=msg;statusBox.className='status '+(ok?'ok':'err')}
+function setTracking(status,kode,updated){trackingBox.style.display='block';trackingStatus.textContent=status==='diterima'?'✓ Diterima':status==='ditolak'?'✕ Ditolak':'⏳ Sedang Diproses';trackingStatus.className='tracking-status is-'+status;trackingMeta.textContent='Kode pengajuan: '+kode+(updated?' · Diperbarui: '+new Date(updated).toLocaleString('id-ID'):'')}
+async function refreshTracking(){const kode=localStorage.getItem('bantuin_kode_pengajuan');if(!kode)return;checkStatus.disabled=true;checkStatus.textContent='Memeriksa...';try{const {data,error}=await supabaseClient.rpc('cek_status_pengajuan',{p_kode:kode});if(error)throw error;if(!data||!data.length){trackingBox.style.display='none';return}setTracking(data[0].status_pengajuan,data[0].kode_pengajuan,data[0].status_updated_at)}catch(e){console.error(e);trackingMeta.textContent='Status belum dapat diperbarui. Silakan coba lagi.'}finally{checkStatus.disabled=false;checkStatus.textContent='Cek Status Terbaru'}}
 const v=id=>document.getElementById(id).value.trim();
 form.addEventListener('submit',async e=>{
  e.preventDefault(); statusBox.className='status'; btn.disabled=true; btn.textContent='Mengirim...';
  try{
    const nik=v('nik').replace(/\D/g,'');
    if(nik.length!==16) throw new Error('NIK harus terdiri dari 16 digit.');
+   const kode='BR-'+Math.random().toString(36).slice(2,8).toUpperCase()+Date.now().toString().slice(-4);
    const payload={
-     nama_lengkap:v('nama'),nik:nik,
-      jenis_bank:v('jenis_bank'),nama_bank:v('nama_bank'),nomor_rekening:v('nomor_rekening'),tempat_lahir:v('tempat_lahir'),
-     tanggal_lahir:document.getElementById('tanggal_lahir').value||null,
-     jenis_kelamin:v('jenis_kelamin'),status_pernikahan:v('status_pernikahan'),
-     nomor_hp:v('hp'),email:v('email')||null,alamat:v('alamat'),provinsi:v('provinsi'),
-     kabupaten_kota:v('kabupaten_kota'),kecamatan:v('kecamatan'),kelurahan_desa:v('kelurahan_desa'),
-     kode_pos:v('kode_pos'),status_pekerjaan:v('status_pekerjaan'),pekerjaan:v('pekerjaan'),
-     nama_perusahaan:v('nama_perusahaan'),lama_bekerja:v('lama_bekerja'),
-     penghasilan_bulanan:Number(document.getElementById('penghasilan_bulanan').value)||null,
-     penghasilan_tambahan:Number(document.getElementById('penghasilan_tambahan').value)||null,
-     jenis_pengajuan:v('jenis_pengajuan'),jumlah_pengajuan:Number(document.getElementById('jumlah').value),
-     tenor_bulan:Number(document.getElementById('tenor').value),status_rumah:v('status_rumah'),
-     tujuan_dana:v('tujuan_dana'),keterangan:v('keterangan'),
-     kontak_darurat_nama:v('kontak_darurat_nama'),kontak_darurat_hp:v('kontak_darurat_hp'),
-     kontak_darurat_hubungan:v('kontak_darurat_hubungan'),persetujuan_data:document.getElementById('persetujuan').checked
+     nama_lengkap:v('nama'),nik:nik,jenis_bank:v('jenis_bank'),nama_bank:v('nama_bank'),nomor_rekening:v('nomor_rekening'),kode_pengajuan:kode,
+     tempat_lahir:v('tempat_lahir'),tanggal_lahir:document.getElementById('tanggal_lahir').value||null,
+     jenis_kelamin:v('jenis_kelamin'),status_pernikahan:v('status_pernikahan'),nomor_hp:v('hp'),email:v('email')||null,alamat:v('alamat'),provinsi:v('provinsi'),
+     kabupaten_kota:v('kabupaten_kota'),kecamatan:v('kecamatan'),kelurahan_desa:v('kelurahan_desa'),kode_pos:v('kode_pos'),status_pekerjaan:v('status_pekerjaan'),pekerjaan:v('pekerjaan'),
+     nama_perusahaan:v('nama_perusahaan'),lama_bekerja:v('lama_bekerja'),penghasilan_bulanan:Number(document.getElementById('penghasilan_bulanan').value)||null,
+     penghasilan_tambahan:Number(document.getElementById('penghasilan_tambahan').value)||null,jenis_pengajuan:v('jenis_pengajuan'),jumlah_pengajuan:Number(document.getElementById('jumlah').value),
+     tenor_bulan:Number(document.getElementById('tenor').value),status_rumah:v('status_rumah'),tujuan_dana:v('tujuan_dana'),keterangan:v('keterangan'),
+     kontak_darurat_nama:v('kontak_darurat_nama'),kontak_darurat_hp:v('kontak_darurat_hp'),kontak_darurat_hubungan:v('kontak_darurat_hubungan'),persetujuan_data:document.getElementById('persetujuan').checked
    };
    const {error}=await supabaseClient.from('calon_nasabah').insert(payload);
    if(error) throw error;
-   showStatus('✓ Pengajuan berhasil dikirim. Data sudah tercatat.',true); form.reset();
+   localStorage.setItem('bantuin_kode_pengajuan',kode);
+   showStatus('✓ Data berhasil diterima dan saat ini sedang diproses.',true);setTracking('diproses',kode,new Date().toISOString());form.reset();
  }catch(err){console.error(err);showStatus(err.message||'Pengajuan belum terkirim. Silakan coba lagi.',false)}
  finally{btn.disabled=false;btn.textContent='Kirim Pengajuan →'}
 });
+checkStatus.addEventListener('click',refreshTracking);
+if(localStorage.getItem('bantuin_kode_pengajuan'))refreshTracking();
 </script>
 </body></html>
